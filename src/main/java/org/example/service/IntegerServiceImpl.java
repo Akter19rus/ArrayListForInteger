@@ -1,13 +1,13 @@
 package org.example.service;
 
-import org.example.exceptions.FullException;
 import org.example.exceptions.InvalidIndexException;
 import org.example.exceptions.NullItemException;
 
 import java.util.Arrays;
 
+
 public class IntegerServiceImpl implements IntegerListService {
-    private final Integer[] storage;
+    private Integer[] storage;
     private Integer size;
 
     public IntegerServiceImpl() {
@@ -22,7 +22,7 @@ public class IntegerServiceImpl implements IntegerListService {
 
     @Override
     public Integer add(Integer item) {
-        validateSize();
+        validateSizeAndGrow();
         validateItem(item);
         storage[size++] = item;
         return item;
@@ -30,7 +30,7 @@ public class IntegerServiceImpl implements IntegerListService {
 
     @Override
     public Integer add(int index, Integer item) {
-        validateSize();
+        validateSizeAndGrow();
         validateIndex(index);
         validateItem(item);
         if (index == size) {
@@ -140,9 +140,9 @@ public class IntegerServiceImpl implements IntegerListService {
         }
     }
 
-    private void validateSize() {
+    private void validateSizeAndGrow() {
         if (size == storage.length) {
-            throw new FullException();
+            grow();
         }
     }
 
@@ -152,16 +152,38 @@ public class IntegerServiceImpl implements IntegerListService {
         }
     }
 
-    public static void sort(Integer[] arr) {
-        for (int i = 1; i < arr.length; i++) {
-            int temp = arr[i];
-            int j = i;
-            while (j > 0 && arr[j - 1] >= temp) {
-                arr[j] = arr[j - 1];
-                j--;
-            }
-            arr[j] = temp;
+    public void sort(Integer[] arr) {
+        quickSort(arr, 0, arr.length - 1);
+    }
+
+    private void quickSort(Integer[] arr, int begin, int end) {
+        if (begin < end) {
+            int partitionIndex = partition(arr, begin, end);
+            quickSort(arr, begin, end);
+            quickSort(arr, partitionIndex + 1, end);
         }
+    }
+
+    private int partition(Integer[] arr, int begin, int end) {
+        int pivot = arr[end];
+        int i = (begin - 1);
+
+        for (int j = begin; j < end; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+
+                swapElements(arr, i, j);
+            }
+        }
+
+        swapElements(arr, i + 1, end);
+        return i + 1;
+    }
+
+    private void swapElements(Integer[] arr, int i1, int i2) {
+        int temp = arr[i1];
+        arr[i1] = arr[i2];
+        arr[i2] = temp;
     }
 
     public static boolean binarySearch(Integer[] arr, int item) {
@@ -190,5 +212,9 @@ public class IntegerServiceImpl implements IntegerListService {
                 "storage=" + Arrays.toString(storage) +
                 ", size=" + size +
                 '}';
+    }
+
+    private void grow() {
+        storage = Arrays.copyOf(storage, size + size / 2);
     }
 }
